@@ -88,7 +88,9 @@ libzmq_la_SOURCES = \
     tcp_address.hpp \
     tcp_connecter.hpp \
     tcp_listener.hpp \
+    tcp_transport.hpp \
     thread.hpp \
+    transport.hpp \
     trie.hpp \
     windows.hpp \
     wire.hpp \
@@ -160,6 +162,7 @@ libzmq_la_SOURCES = \
     tcp_address.cpp \
     tcp_connecter.cpp \
     tcp_listener.cpp \
+    tcp_transport.cpp \
     thread.cpp \
     trie.cpp \
     xpub.cpp \
