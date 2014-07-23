@@ -29,6 +29,7 @@
 #include "i_decoder.hpp"
 #include "options.hpp"
 #include "socket_base.hpp"
+#include "transport.hpp"
 #include "../include/zmq.h"
 #include "metadata.hpp"
 
@@ -60,7 +61,8 @@ namespace zmq
         };
 
         stream_engine_t (fd_t fd_, const options_t &options_, 
-                         const std::string &endpoint);
+                         const std::string &endpoint,
+                         transport *transport_);
         ~stream_engine_t ();
 
         //  i_engine interface implementation.
@@ -75,6 +77,11 @@ namespace zmq
         void in_event ();
         void out_event ();
         void timer_event (int id_);
+
+        //Moved back to stream_engine_t
+        int write(fd_t s_, const void *data_, size_t size_);
+
+        int read(fd_t s_, void *data_, size_t size_);
 
         // export s via i_engine so it is possible to link a pipe to fd
         fd_t get_assoc_fd (){ return s; };
@@ -198,6 +205,9 @@ namespace zmq
         zmq::socket_base_t *socket;
 
         std::string peer_address;
+
+        //Transport Object (Pluggable Transport)
+        transport *tx_transport;
 
         stream_engine_t (const stream_engine_t&);
         const stream_engine_t &operator = (const stream_engine_t&);

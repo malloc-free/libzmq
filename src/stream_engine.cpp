@@ -60,9 +60,11 @@
 #include "tcp.hpp"
 #include "likely.hpp"
 #include "wire.hpp"
+#include "transport.hpp"
 
 zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_,
-                                       const std::string &endpoint_) :
+                                       const std::string &endpoint_,
+                                       transport *transport_) :
     s (fd_),
     inpos (NULL),
     insize (0),
@@ -86,7 +88,8 @@ zmq::stream_engine_t::stream_engine_t (fd_t fd_, const options_t &options_,
     input_stopped (false),
     output_stopped (false),
     has_handshake_timer (false),
-    socket (NULL)
+    socket (NULL),
+    tx_transport(transport_)
 {
     int rc = tx_msg.init ();
     errno_assert (rc == 0);
@@ -143,7 +146,12 @@ zmq::stream_engine_t::~stream_engine_t ()
         int rc = closesocket (s);
         wsa_assert (rc != SOCKET_ERROR);
 #else
-        int rc = close (s);
+        int rc;
+        if(tx_transport != NULL)
+        	rc = tx_transport->tx_close (s);
+        else
+        	rc = close(s);
+
         errno_assert (rc == 0);
 #endif
         s = retired_fd;
@@ -276,7 +284,7 @@ void zmq::stream_engine_t::in_event ()
         size_t bufsize = 0;
         decoder->get_buffer (&inpos, &bufsize);
 
-        const int rc = tcp_read (s, inpos, bufsize);
+        const int rc = read (s, inpos, bufsize);
         if (rc == 0) {
             error (connection_error);
             return;
@@ -363,7 +371,7 @@ void zmq::stream_engine_t::out_event ()
     //  arbitrarily large. However, we assume that underlying TCP layer has
     //  limited transmission buffer and thus the actual number of bytes
     //  written should be reasonably modest.
-    const int nbytes = tcp_write (s, outpos, outsize);
+    const int nbytes = write (s, outpos, outsize);
 
     //  IO error has occurred. We stop waiting for output events.
     //  The engine is not terminated until we detect input error;
@@ -452,7 +460,7 @@ bool zmq::stream_engine_t::handshake ()
     zmq_assert (greeting_bytes_read < greeting_size);
     //  Receive the greeting.
     while (greeting_bytes_read < greeting_size) {
-        const int n = tcp_read (s, greeting_recv + greeting_bytes_read,
+        const int n = read (s, greeting_recv + greeting_bytes_read,
                                 greeting_size - greeting_bytes_read);
         if (n == 0) {
             error (connection_error);
@@ -914,3 +922,122 @@ void zmq::stream_engine_t::timer_event (int id_)
     //  handshake timer expired before handshake completed, so engine fails
     error (timeout_error);
 }
+
+int zmq::stream_engine_t::write (fd_t s_, const void *data_, size_t size_)
+{
+#ifdef ZMQ_HAVE_WINDOWS
+
+    int nbytes;
+
+    if(tx_transport != NUlL)
+    	nbytes = tx_transport->tx_send (s_, (char*) data_, (int) size_, 0);
+    else
+    	nbytes = send(s_, (char*) data_, (int) size_, 0);
+
+    //  If not a single byte can be written to the socket in non-blocking mode
+    //  we'll get an error (this may happen during the speculative write).
+    if (nbytes == SOCKET_ERROR && WSAGetLastError () == WSAEWOULDBLOCK)
+        return 0;
+
+    //  Signalise peer failure.
+    if (nbytes == SOCKET_ERROR && (
+          WSAGetLastError () == WSAENETDOWN ||
+          WSAGetLastError () == WSAENETRESET ||
+          WSAGetLastError () == WSAEHOSTUNREACH ||
+          WSAGetLastError () == WSAECONNABORTED ||
+          WSAGetLastError () == WSAETIMEDOUT ||
+          WSAGetLastError () == WSAECONNRESET))
+        return -1;
+
+    wsa_assert (nbytes != SOCKET_ERROR);
+    return nbytes;
+
+#else
+    ssize_t nbytes;
+    if(tx_transport != NULL)
+    	nbytes = tx_transport->tx_send (s_, data_, size_, 0);
+    else
+    	nbytes = send(s_, data_, size_, 0);
+
+    //  Several errors are OK. When speculative write is being done we may not
+    //  be able to write a single byte from the socket. Also, SIGSTOP issued
+    //  by a debugging tool can result in EINTR error.
+    if (nbytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK ||
+          errno == EINTR))
+        return 0;
+
+    //  Signalise peer failure.
+    if (nbytes == -1) {
+        errno_assert (errno != EACCES
+                   && errno != EBADF
+                   && errno != EDESTADDRREQ
+                   && errno != EFAULT
+                   && errno != EINVAL
+                   && errno != EISCONN
+                   && errno != EMSGSIZE
+                   && errno != ENOMEM
+                   && errno != ENOTSOCK
+                   && errno != EOPNOTSUPP);
+        return -1;
+    }
+
+    return static_cast <int> (nbytes);
+
+#endif
+}
+
+int zmq::stream_engine_t::read (fd_t s_, void *data_, size_t size_)
+{
+#ifdef ZMQ_HAVE_WINDOWS
+	int rc;
+
+	if(tx_transport != NULL)
+		rc = tx_transport->tx_recv (s_, (char*) data_, (int) size_, 0);
+	else
+		rc = recv(s_, (char*) data_, (int) size_, 0);
+
+    //  If not a single byte can be read from the socket in non-blocking mode
+    //  we'll get an error (this may happen during the speculative read).
+    if (rc == SOCKET_ERROR) {
+        if (WSAGetLastError () == WSAEWOULDBLOCK)
+            errno = EAGAIN;
+        else {
+            wsa_assert (WSAGetLastError () == WSAENETDOWN
+                     || WSAGetLastError () == WSAENETRESET
+                     || WSAGetLastError () == WSAECONNABORTED
+                     || WSAGetLastError () == WSAETIMEDOUT
+                     || WSAGetLastError () == WSAECONNRESET
+                     || WSAGetLastError () == WSAECONNREFUSED
+                     || WSAGetLastError () == WSAENOTCONN);
+            errno = wsa_error_to_errno (WSAGetLastError ());
+        }
+    }
+
+    return rc == SOCKET_ERROR? -1: rc;
+
+#else
+    ssize_t rc;
+
+    if(tx_transport != NULL)
+    	rc = tx_transport->tx_recv (s_, data_, size_, 0);
+    else
+    	rc = recv(s, data_, size_, 0);
+
+    //  Several errors are OK. When speculative read is being done we may not
+    //  be able to read a single byte from the socket. Also, SIGSTOP issued
+    //  by a debugging tool can result in EINTR error.
+    if (rc == -1) {
+        errno_assert (errno != EBADF
+                   && errno != EFAULT
+                   && errno != EINVAL
+                   && errno != ENOMEM
+                   && errno != ENOTSOCK);
+        if (errno == EWOULDBLOCK || errno == EINTR)
+            errno = EAGAIN;
+    }
+
+    return static_cast <int> (rc);
+
+#endif
+}
+
