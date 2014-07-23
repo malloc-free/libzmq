@@ -18,8 +18,8 @@
 #include <string>
 #include <../include/zmq.h>
 
-#define P_Z_ERR(i, s) if(i != 0)  perror(s)
-#define P_N_ERR(i, s) if(i == -1)  perror(s)
+#define P_Z_ERR(i, s) if(i != 0 && errno != EAGAIN)  perror(s)
+#define P_N_ERR(i, s) if(i == -1 && errno != EAGAIN)  perror(s)
 
 namespace zmq
 {

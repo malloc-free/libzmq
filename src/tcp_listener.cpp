@@ -64,6 +64,10 @@ zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_,
 zmq::tcp_listener_t::~tcp_listener_t ()
 {
     zmq_assert (s == retired_fd);
+
+    if(tx_transport) {
+    	delete tx_transport;
+    }
 }
 
 void zmq::tcp_listener_t::process_plug ()
