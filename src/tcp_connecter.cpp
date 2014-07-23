@@ -226,7 +226,7 @@ int zmq::tcp_connecter_t::open ()
     tcp_address_t * const tcp_addr = addr->resolved.tcp_addr;
 
     //  Create the socket.
-    s = open_socket (tcp_addr->family (), SOCK_STREAM, IPPROTO_TCP);
+    s = tx_transport->tx_socket (tcp_addr->family (), SOCK_STREAM, IPPROTO_TCP);
 #ifdef ZMQ_HAVE_WINDOWS
     if (s == INVALID_SOCKET) {
         errno = wsa_error_to_errno (WSAGetLastError ());
@@ -240,20 +240,20 @@ int zmq::tcp_connecter_t::open ()
     //  On some systems, IPv4 mapping in IPv6 sockets is disabled by default.
     //  Switch it on in such cases.
     if (tcp_addr->family () == AF_INET6)
-        enable_ipv4_mapping (s);
+        tx_transport->tx_enable_ipv4_mapping (s);
 
     // Set the IP Type-Of-Service priority for this socket
     if (options.tos != 0)
-        set_ip_type_of_service (s, options.tos);
+        tx_transport->tx_set_ip_type_of_service (s, options.tos);
 
     // Set the socket to non-blocking mode so that we get async connect().
-    unblock_socket (s);
+    tx_transport->tx_unblock_socket (s);
 
     //  Set the socket buffer limits for the underlying socket.
     if (options.sndbuf != 0)
-        set_tcp_send_buffer (s, options.sndbuf);
+        tx_transport->tx_set_send_buffer (s, options.sndbuf);
     if (options.rcvbuf != 0)
-        set_tcp_receive_buffer (s, options.rcvbuf);
+        tx_transport->tx_set_receive_buffer (s, options.rcvbuf);
 
     // Set the IP Type-Of-Service for the underlying socket
     if (options.tos != 0)
@@ -261,13 +261,13 @@ int zmq::tcp_connecter_t::open ()
 
     // Set a source address for conversations
     if (tcp_addr->has_src_addr ()) {
-        rc = ::bind (s, tcp_addr->src_addr (), tcp_addr->src_addrlen ());
+        rc = tx_transport->tx_bind (s, tcp_addr->src_addr (), tcp_addr->src_addrlen ());
         if (rc == -1)
             return -1;
     }
 
     //  Connect to the remote peer.
-    rc = ::connect (s, tcp_addr->addr (), tcp_addr->addrlen ());
+    rc = tx_transport->tx_connect (s, tcp_addr->addr (), tcp_addr->addrlen ());
 
     //  Connect was successfull immediately.
     if (rc == 0)
@@ -298,7 +298,7 @@ zmq::fd_t zmq::tcp_connecter_t::connect ()
     socklen_t len = sizeof err;
 #endif
 
-    const int rc = getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
+    const int rc = tx_transport->tx_getsockopt (s, SOL_SOCKET, SO_ERROR, (char*) &err, &len);
 
     //  Assert if the error was caused by 0MQ bug.
     //  Networking problems are OK. No need to assert.

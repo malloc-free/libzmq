@@ -91,8 +91,8 @@ void zmq::tcp_listener_t::in_event ()
         return;
     }
 
-    tune_tcp_socket (fd);
-    tune_tcp_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
+    tx_transport->tx_tune_socket (fd);
+    tx_transport->tx_set_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
 
     // remember our fd for ZMQ_SRCFD in messages
     socket->set_fd(fd);
