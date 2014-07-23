@@ -124,7 +124,7 @@ void zmq::tcp_listener_t::close ()
     int rc = closesocket (s);
     wsa_assert (rc != SOCKET_ERROR);
 #else
-    int rc = ::close (s);
+    int rc = tx_transport->tx_close (s);
     errno_assert (rc == 0);
 #endif
     socket->event_closed (endpoint, s);
@@ -159,7 +159,7 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
         return -1;
 
     //  Create a listening socket.
-    s = open_socket (address.family (), SOCK_STREAM, IPPROTO_TCP);
+    s = tx_transport->tx_socket (address.family (), SOCK_STREAM, IPPROTO_TCP);
 #ifdef ZMQ_HAVE_WINDOWS
     if (s == INVALID_SOCKET)
         errno = wsa_error_to_errno (WSAGetLastError ());
@@ -172,7 +172,7 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
         rc = address.resolve (addr_, true, true);
         if (rc != 0)
             return rc;
-        s = ::socket (address.family (), SOCK_STREAM, IPPROTO_TCP);
+        s = tx_transport->tx_socket (address.family (), SOCK_STREAM, IPPROTO_TCP);
     }
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -208,18 +208,18 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
     //  Allow reusing of the address.
     int flag = 1;
 #ifdef ZMQ_HAVE_WINDOWS
-    rc = setsockopt (s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
-        (const char*) &flag, sizeof (int));
+    rc = tx_transport->tx_setsockopt (s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
+
     wsa_assert (rc != SOCKET_ERROR);
 #else
-    rc = setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
+    rc = tx_transport->tx_setsockopt (s, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (int));
     errno_assert (rc == 0);
 #endif
 
     address.to_string (endpoint);
 
     //  Bind the socket to the network interface and port.
-    rc = bind (s, address.addr (), address.addrlen ());
+    rc = tx_transport->tx_bind (s, address.addr (), address.addrlen ());
 #ifdef ZMQ_HAVE_WINDOWS
     if (rc == SOCKET_ERROR) {
         errno = wsa_error_to_errno (WSAGetLastError ());
@@ -231,7 +231,7 @@ int zmq::tcp_listener_t::set_address (const char *addr_)
 #endif
 
     //  Listen for incoming connections.
-    rc = listen (s, options.backlog);
+    rc = tx_transport->tx_listen (s, options.backlog);
 #ifdef ZMQ_HAVE_WINDOWS
     if (rc == SOCKET_ERROR) {
         errno = wsa_error_to_errno (WSAGetLastError ());
@@ -266,7 +266,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 #else
     socklen_t ss_len = sizeof (ss);
 #endif
-    fd_t sock = ::accept (s, (struct sockaddr *) &ss, &ss_len);
+    fd_t sock = tx_transport->tx_accept (s, (struct sockaddr *) &ss, &ss_len);
 
 #ifdef ZMQ_HAVE_WINDOWS
     if (sock == INVALID_SOCKET) {
