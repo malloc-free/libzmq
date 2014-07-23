@@ -23,6 +23,8 @@ public:
 
 	virtual ~tcp_transport();
 
+	static transport *tx_get_transport();
+
 	int tx_socket(int domain, int type, int protocol);
 
 	int tx_connect(int sockfd, const struct sockaddr *addr,

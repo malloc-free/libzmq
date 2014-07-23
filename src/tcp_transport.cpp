@@ -31,6 +31,10 @@ tcp_transport::~tcp_transport() {
 	// TODO Auto-generated destructor stub
 }
 
+transport *tcp_transport::tx_get_transport() {
+	return new (std::nothrow) tcp_transport();
+}
+
 int tcp_transport::tx_socket(int domain, int type, int protocol)
 {
 	int rc;

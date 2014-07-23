@@ -64,6 +64,7 @@ struct iovec {
 #include "msg.hpp"
 #include "fd.hpp"
 #include "metadata.hpp"
+#include "transport.hpp"
 
 #if !defined ZMQ_HAVE_WINDOWS
 #include <unistd.h>
@@ -1081,4 +1082,9 @@ int zmq_has (const char *capability)
 #endif
     //  Whatever the application asked for, we don't have
     return false;
+}
+
+void zmq_add_transport(void *ctx, char *name, void *(*txpt)()) {
+	const std::string t_name(name);
+	((zmq::ctx_t*)ctx)->add_transport(t_name, (zmq::transport_factory)txpt);
 }

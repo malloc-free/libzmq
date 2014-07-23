@@ -20,6 +20,7 @@
 #include <new>
 #include <string>
 #include <algorithm>
+#include <map>
 
 #include "platform.hpp"
 
@@ -81,7 +82,7 @@ bool zmq::socket_base_t::check_tag ()
 }
 
 zmq::socket_base_t *zmq::socket_base_t::create (int type_, class ctx_t *parent_,
-    uint32_t tid_, int sid_)
+    uint32_t tid_, int sid_, std::map<std::string, zmq::transport_factory> *tx_factories_)
 {
     socket_base_t *s = NULL;
     switch (type_) {
@@ -129,6 +130,8 @@ zmq::socket_base_t *zmq::socket_base_t::create (int type_, class ctx_t *parent_,
     alloc_assert (s);
     if (s->mailbox.get_fd () == retired_fd)
         return NULL;
+
+    s->set_transport_factories(tx_factories_);
 
     return s;
 }
@@ -392,8 +395,12 @@ int zmq::socket_base_t::bind (const char *addr_)
     }
 
     if (protocol == "tcp") {
+    	std::map<std::string, zmq::transport_factory>::iterator i =
+    			tx_factories->find(std::string("tcp"));
 
-    	zmq::transport *txpt = new (std::nothrow) tcp_transport();
+    	assert(tx_factories->end() != i);
+
+    	zmq::transport *txpt = i->second();
 
         tcp_listener_t *listener = new (std::nothrow) tcp_listener_t (
             io_thread, this, options, txpt);
@@ -1344,4 +1351,8 @@ void zmq::socket_base_t::stop_monitor (void)
         monitor_socket = NULL;
         monitor_events = 0;
     }
+}
+
+void zmq::socket_base_t::set_transport_factories(std::map<std::string, zmq::transport_factory> *tx_factories_) {
+	tx_factories = tx_factories_;
 }

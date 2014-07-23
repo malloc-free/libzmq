@@ -35,6 +35,7 @@
 #include "stdint.hpp"
 #include "clock.hpp"
 #include "pipe.hpp"
+#include "transport.hpp"
 
 extern "C"
 {
@@ -63,7 +64,7 @@ namespace zmq
 
         //  Create a socket of a specified type.
         static socket_base_t *create (int type_, zmq::ctx_t *parent_,
-            uint32_t tid_, int sid_);
+            uint32_t tid_, int sid_, std::map<std::string, zmq::transport_factory> *tx_factories_);
 
         //  Returns the mailbox associated with this socket.
         mailbox_t *get_mailbox ();
@@ -224,6 +225,12 @@ namespace zmq
         void process_stop ();
         void process_bind (zmq::pipe_t *pipe_);
         void process_term (int linger_);
+
+        //Set transport map
+        void set_transport_factories(std::map<std::string, zmq::transport_factory> *tx_factories_);
+
+        //Transport map
+        std::map<std::string, zmq::transport_factory> *tx_factories;
 
         //  Socket's mailbox object.
         mailbox_t mailbox;

@@ -428,6 +428,11 @@ ZMQ_EXPORT uint8_t *zmq_z85_decode (uint8_t *dest, char *string);
 /*  Returns 0 on success.                                                     */
 ZMQ_EXPORT int zmq_curve_keypair (char *z85_public_key, char *z85_secret_key);
 
+/******************************************************************************/
+/* Pluggable Transport Functions                                              */
+/******************************************************************************/
+
+ZMQ_EXPORT void zmq_add_transport(void *ctx, char *name, void *(*txpt)());
 
 /******************************************************************************/
 /*  These functions are not documented by man pages -- use at your own risk.  */

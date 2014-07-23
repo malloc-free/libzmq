@@ -27,6 +27,7 @@
 #include <limits>
 #include <new>
 #include <string.h>
+#include <map>
 
 #include "ctx.hpp"
 #include "socket_base.hpp"
@@ -35,6 +36,8 @@
 #include "pipe.hpp"
 #include "err.hpp"
 #include "msg.hpp"
+#include "transport.hpp"
+#include "tcp_transport.hpp"
 
 #define ZMQ_CTX_TAG_VALUE_GOOD 0xabadcafe
 #define ZMQ_CTX_TAG_VALUE_BAD  0xdeadbeef
@@ -59,11 +62,15 @@ zmq::ctx_t::ctx_t () :
     io_thread_count (ZMQ_IO_THREADS_DFLT),
     ipv6 (false),
     thread_priority (ZMQ_THREAD_PRIORITY_DFLT),
-    thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT)
+    thread_sched_policy (ZMQ_THREAD_SCHED_POLICY_DFLT),
+    tx_factories()
 {
 #ifdef HAVE_FORK
     pid = getpid();
 #endif
+    const std::string s_name("tcp");
+    std::pair<std::string, zmq::transport_factory> p(s_name, &zmq::tcp_transport::tx_get_transport);
+    tx_factories.insert(p);
 }
 
 bool zmq::ctx_t::check_tag ()
@@ -300,7 +307,7 @@ zmq::socket_base_t *zmq::ctx_t::create_socket (int type_)
     int sid = ((int) max_socket_id.add (1)) + 1;
 
     //  Create the socket and register its mailbox.
-    socket_base_t *s = socket_base_t::create (type_, this, slot, sid);
+    socket_base_t *s = socket_base_t::create (type_, this, slot, sid, &tx_factories);
     if (!s) {
         empty_slots.push_back (slot);
         slot_sync.unlock ();
@@ -479,6 +486,10 @@ void zmq::ctx_t::connect_pending (const char *addr_, zmq::socket_base_t *bind_so
 
     pending_connections.erase(pending.first, pending.second);
     endpoints_sync.unlock ();
+}
+
+void zmq::ctx_t::add_transport(const std::string &name, transport_factory tx_f) {
+	tx_factories.insert(std::pair<std::string, zmq::transport_factory>(name, tx_f));
 }
 
 void zmq::ctx_t::connect_inproc_sockets (zmq::socket_base_t *bind_socket_,

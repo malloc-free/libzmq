@@ -90,6 +90,8 @@ public:
 	virtual void tx_set_options(int sockd, transport_options_t *options) = 0;
 };
 
+typedef transport *(*transport_factory)();
+
 } /* namespace zmq */
 
 #endif /* TRANSPORT_HPP_ */
