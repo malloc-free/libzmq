@@ -30,6 +30,8 @@
 #include "pgm_receiver.hpp"
 #include "address.hpp"
 #include "norm_engine.hpp"
+#include "transport.hpp"
+#include "tcp_transport.hpp"
 
 #include "ctx.hpp"
 #include "req.hpp"
@@ -509,8 +511,10 @@ void zmq::session_base_t::start_connecting (bool wait_)
             launch_child (connecter);
         }
         else {
+        	transport *txpt = new (std::nothrow) tcp_transport();
             tcp_connecter_t *connecter = new (std::nothrow)
-                tcp_connecter_t (io_thread, this, options, addr, wait_);
+                tcp_connecter_t (io_thread, this, options, addr, wait_,
+                		txpt);
             alloc_assert (connecter);
             launch_child (connecter);
         }

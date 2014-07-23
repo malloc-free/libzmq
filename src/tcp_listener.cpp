@@ -31,6 +31,7 @@
 #include "err.hpp"
 #include "ip.hpp"
 #include "tcp.hpp"
+#include "transport.hpp"
 #include "socket_base.hpp"
 
 #ifdef ZMQ_HAVE_WINDOWS
@@ -50,11 +51,13 @@
 #endif
 
 zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_,
-      socket_base_t *socket_, const options_t &options_) :
+      socket_base_t *socket_, const options_t &options_,
+      transport *transport_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     s (retired_fd),
-    socket (socket_)
+    socket (socket_),
+    tx_transport(transport_)
 {
 }
 

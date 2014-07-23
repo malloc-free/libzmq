@@ -71,6 +71,10 @@
 #include "xsub.hpp"
 #include "stream.hpp"
 
+//Pluggable Transports
+#include "transport.hpp"
+#include "tcp_transport.hpp"
+
 bool zmq::socket_base_t::check_tag ()
 {
     return tag == 0xbaddecaf;
@@ -388,8 +392,11 @@ int zmq::socket_base_t::bind (const char *addr_)
     }
 
     if (protocol == "tcp") {
+
+    	zmq::transport *txpt = new (std::nothrow) tcp_transport();
+
         tcp_listener_t *listener = new (std::nothrow) tcp_listener_t (
-            io_thread, this, options);
+            io_thread, this, options, txpt);
         alloc_assert (listener);
         int rc = listener->set_address (address.c_str ());
         if (rc != 0) {

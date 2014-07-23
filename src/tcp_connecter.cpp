@@ -31,6 +31,7 @@
 #include "address.hpp"
 #include "tcp_address.hpp"
 #include "session_base.hpp"
+#include "transport.hpp"
 
 #if defined ZMQ_HAVE_WINDOWS
 #include "windows.hpp"
@@ -50,7 +51,7 @@
 
 zmq::tcp_connecter_t::tcp_connecter_t (class io_thread_t *io_thread_,
       class session_base_t *session_, const options_t &options_,
-      address_t *addr_, bool delayed_start_) :
+      address_t *addr_, bool delayed_start_, transport *transport_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     addr (addr_),
@@ -59,7 +60,8 @@ zmq::tcp_connecter_t::tcp_connecter_t (class io_thread_t *io_thread_,
     delayed_start (delayed_start_),
     timer_started (false),
     session (session_),
-    current_reconnect_ivl (options.reconnect_ivl)
+    current_reconnect_ivl (options.reconnect_ivl),
+	tx_transport(transport_)
 {
     zmq_assert (addr);
     zmq_assert (addr->protocol == "tcp");
