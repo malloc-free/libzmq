@@ -929,7 +929,7 @@ int zmq::stream_engine_t::write (fd_t s_, const void *data_, size_t size_)
 
     int nbytes;
 
-    if(tx_transport != NUlL)
+    if(tx_transport != NULL)
     	nbytes = tx_transport->tx_send (s_, (char*) data_, (int) size_, 0);
     else
     	nbytes = send(s_, (char*) data_, (int) size_, 0);
@@ -954,7 +954,7 @@ int zmq::stream_engine_t::write (fd_t s_, const void *data_, size_t size_)
 
 #else
     ssize_t nbytes;
-    if(tx_transport != NULL)
+    if(tx_transport)
     	nbytes = tx_transport->tx_send (s_, data_, size_, 0);
     else
     	nbytes = send(s_, data_, size_, 0);
@@ -1018,7 +1018,7 @@ int zmq::stream_engine_t::read (fd_t s_, void *data_, size_t size_)
 #else
     ssize_t rc;
 
-    if(tx_transport != NULL)
+    if(tx_transport)
     	rc = tx_transport->tx_recv (s_, data_, size_, 0);
     else
     	rc = recv(s, data_, size_, 0);
