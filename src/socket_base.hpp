@@ -64,7 +64,7 @@ namespace zmq
 
         //  Create a socket of a specified type.
         static socket_base_t *create (int type_, zmq::ctx_t *parent_,
-            uint32_t tid_, int sid_, std::map<std::string, zmq::transport_factory> *tx_factories_);
+            uint32_t tid_, int sid_, std::map<std::string, zmq::transport_func> *tx_factories_);
 
         //  Returns the mailbox associated with this socket.
         mailbox_t *get_mailbox ();
@@ -227,10 +227,7 @@ namespace zmq
         void process_term (int linger_);
 
         //Set transport map
-        void set_transport_factories(std::map<std::string, zmq::transport_factory> *tx_factories_);
-
-        //Transport map
-        std::map<std::string, zmq::transport_factory> *tx_factories;
+        void set_transport_factories(std::map<std::string, zmq::transport_func> *tx_factories_);
 
         //  Socket's mailbox object.
         mailbox_t mailbox;
@@ -266,6 +263,12 @@ namespace zmq
 
         // Last socket endpoint resolved URI
         std::string last_endpoint;
+
+        //The transport for this socket.
+        transport *tx_transport;
+
+        //Transport map
+        std::map<std::string, zmq::transport_func> *tx_factories;
 
         socket_base_t (const socket_base_t&);
         const socket_base_t &operator = (const socket_base_t&);

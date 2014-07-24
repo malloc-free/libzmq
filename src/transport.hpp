@@ -91,6 +91,12 @@ public:
 };
 
 typedef transport *(*transport_factory)();
+typedef void (*transport_destroy)(transport *tx_transport_);
+
+struct transport_func {
+	transport_factory factory;
+	transport_destroy destroy;
+};
 
 } /* namespace zmq */
 

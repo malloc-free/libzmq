@@ -32,8 +32,12 @@ tcp_transport::~tcp_transport() {
 	// TODO Auto-generated destructor stub
 }
 
-transport *tcp_transport::tx_get_transport() {
+transport *tcp_transport::tx_create_transport() {
 	return new (std::nothrow) tcp_transport();
+}
+
+void tcp_transport::tx_destroy_transport(transport *tx_transport_) {
+	delete tx_transport_;
 }
 
 int tcp_transport::tx_socket(int domain, int type, int protocol)
@@ -41,7 +45,7 @@ int tcp_transport::tx_socket(int domain, int type, int protocol)
 	int rc;
 	rc = socket(domain, type, protocol);
 
-	P_N_ERR(rc, "tx_socket");
+	//P_N_ERR(rc, "tx_socket");
 
 	return rc;
 }
@@ -52,7 +56,7 @@ int tcp_transport::tx_connect(int sockfd, const struct sockaddr *addr,
 	int rc;
 	rc = connect(sockfd, addr, addrlen);
 
-	P_Z_ERR(rc, "tx_connect");
+	//P_Z_ERR(rc, "tx_connect");
 
 	return rc;
 }
@@ -62,7 +66,7 @@ int tcp_transport::tx_listen(int sockfd, int backlog)
 	int rc;
 	rc = listen(sockfd, backlog);
 
-	P_Z_ERR(rc, "tx_listen");
+	//P_Z_ERR(rc, "tx_listen");
 
 	return rc;
 }
@@ -73,7 +77,7 @@ int tcp_transport::tx_bind(int sockfd, const struct sockaddr *addr,
 	int rc;
 	rc = bind(sockfd, addr, addrlen);
 
-	P_Z_ERR(rc, "tx_bind");
+	//P_Z_ERR(rc, "tx_bind");
 
 	return rc;
 }
@@ -84,7 +88,7 @@ int tcp_transport::tx_accept(int sockfd, struct sockaddr *addr,
 	int rc;
 	rc = accept(sockfd, addr, addrlen);
 
-	P_N_ERR(rc, "tx_accept");
+	//P_N_ERR(rc, "tx_accept");
 
 	return rc;
 }
@@ -94,7 +98,7 @@ int tcp_transport::tx_send(int sockfd, const void *buf, size_t len, int flags)
 	int rc;
 	rc = send(sockfd, buf, len, flags);
 
-	P_N_ERR(rc, "tx_send");
+	//P_N_ERR(rc, "tx_send");
 
 	return rc;
 }
@@ -104,7 +108,7 @@ int tcp_transport::tx_recv(int sockfd, void *buf, size_t len, int flags)
 	int rc;
 	rc = recv(sockfd, buf, len, flags);
 
-	P_N_ERR(rc, "tx_recv");
+	//P_N_ERR(rc, "tx_recv");
 
 	return rc;
 }
@@ -114,7 +118,7 @@ int tcp_transport::tx_close(int fd)
 	int rc;
 	rc = close(fd);
 
-	P_Z_ERR(rc, "tx_close");
+	//P_Z_ERR(rc, "tx_close");
 
 	return rc;
 }

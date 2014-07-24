@@ -112,7 +112,7 @@ namespace zmq
                 const endpoint_t &endpoint_, pipe_t **pipes_);
         void connect_pending (const char *addr_, zmq::socket_base_t *bind_socket_);
 
-        void add_transport(const std::string &name, transport_factory tx_f);
+        void add_transport(const std::string &name, transport_func *tx_f);
 
         enum {
             term_tid = 0,
@@ -201,7 +201,7 @@ namespace zmq
         mutex_t opt_sync;
 
         // Map of string to transport_fatcory static member functions
-        std::map<std::string, zmq::transport_factory> tx_factories;
+        std::map<std::string, zmq::transport_func> tx_factories;
 
         ctx_t (const ctx_t&);
         const ctx_t &operator = (const ctx_t&);

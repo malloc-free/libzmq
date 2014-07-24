@@ -23,7 +23,9 @@ public:
 
 	virtual ~tcp_transport();
 
-	static transport *tx_get_transport();
+	static transport *tx_create_transport();
+
+	static void tx_destroy_transport(transport *tx_transport_);
 
 	int tx_socket(int domain, int type, int protocol);
 

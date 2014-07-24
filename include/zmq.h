@@ -432,7 +432,7 @@ ZMQ_EXPORT int zmq_curve_keypair (char *z85_public_key, char *z85_secret_key);
 /* Pluggable Transport Functions                                              */
 /******************************************************************************/
 
-ZMQ_EXPORT void zmq_add_transport(void *ctx, char *name, void *(*txpt)());
+ZMQ_EXPORT void zmq_add_transport(void *ctx, char *name, void *);
 
 /******************************************************************************/
 /*  These functions are not documented by man pages -- use at your own risk.  */

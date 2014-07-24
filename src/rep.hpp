@@ -21,6 +21,7 @@
 #define __ZMQ_REP_HPP_INCLUDED__
 
 #include "router.hpp"
+#include "transport.hpp"
 
 namespace zmq
 {

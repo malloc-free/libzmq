@@ -28,6 +28,7 @@
 #include "pipe.hpp"
 #include "socket_base.hpp"
 #include "stream_engine.hpp"
+#include "transport.hpp"
 
 namespace zmq
 {
@@ -48,7 +49,8 @@ namespace zmq
         //  Create a session of the particular type.
         static session_base_t *create (zmq::io_thread_t *io_thread_,
             bool active_, zmq::socket_base_t *socket_,
-            const options_t &options_, address_t *addr_);
+            const options_t &options_, address_t *addr_,
+            transport *tx_transport);
 
         //  To be used once only, when creating the session.
         void attach_pipe (zmq::pipe_t *pipe_);
@@ -91,7 +93,7 @@ namespace zmq
 
         session_base_t (zmq::io_thread_t *io_thread_, bool active_,
             zmq::socket_base_t *socket_, const options_t &options_,
-            address_t *addr_);
+            address_t *addr_, transport *tx_transport_);
         virtual ~session_base_t ();
 
     private:
@@ -154,6 +156,9 @@ namespace zmq
 
         //  Protocol and address to use when connecting.
         address_t *addr;
+
+        // Transport for this session.
+        transport *tx_transport;
 
         session_base_t (const session_base_t&);
         const session_base_t &operator = (const session_base_t&);

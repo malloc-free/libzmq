@@ -38,14 +38,14 @@
 
 zmq::session_base_t *zmq::session_base_t::create (class io_thread_t *io_thread_,
     bool active_, class socket_base_t *socket_, const options_t &options_,
-    address_t *addr_)
+    address_t *addr_, transport *tx_transport_)
 {
 	
     session_base_t *s = NULL;
     switch (options_.type) {
     case ZMQ_REQ:
         s = new (std::nothrow) req_session_t (io_thread_, active_,
-            socket_, options_, addr_);
+            socket_, options_, addr_, tx_transport_);
         break;
     case ZMQ_DEALER:
     case ZMQ_REP:
@@ -59,7 +59,7 @@ zmq::session_base_t *zmq::session_base_t::create (class io_thread_t *io_thread_,
     case ZMQ_PAIR:
     case ZMQ_STREAM:
         s = new (std::nothrow) session_base_t (io_thread_, active_,
-            socket_, options_, addr_);
+            socket_, options_, addr_, tx_transport_);
         break;
     default:
         errno = EINVAL;
@@ -71,7 +71,7 @@ zmq::session_base_t *zmq::session_base_t::create (class io_thread_t *io_thread_,
 
 zmq::session_base_t::session_base_t (class io_thread_t *io_thread_,
       bool active_, class socket_base_t *socket_, const options_t &options_,
-      address_t *addr_) :
+      address_t *addr_, transport *tx_transport_) :
     own_t (io_thread_, options_),
     io_object_t (io_thread_),
     active (active_),
@@ -83,7 +83,8 @@ zmq::session_base_t::session_base_t (class io_thread_t *io_thread_,
     socket (socket_),
     io_thread (io_thread_),
     has_linger_timer (false),
-    addr (addr_)
+    addr (addr_),
+    tx_transport(tx_transport_)
 {
 }
 
@@ -511,10 +512,9 @@ void zmq::session_base_t::start_connecting (bool wait_)
             launch_child (connecter);
         }
         else {
-        	transport *txpt = new (std::nothrow) tcp_transport();
             tcp_connecter_t *connecter = new (std::nothrow)
                 tcp_connecter_t (io_thread, this, options, addr, wait_,
-                		txpt);
+                		tx_transport);
             alloc_assert (connecter);
             launch_child (connecter);
         }

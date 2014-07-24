@@ -68,8 +68,15 @@ zmq::ctx_t::ctx_t () :
 #ifdef HAVE_FORK
     pid = getpid();
 #endif
-    const std::string s_name("tcp");
-    std::pair<std::string, zmq::transport_factory> p(s_name, &zmq::tcp_transport::tx_get_transport);
+
+    // Create tcp functions
+    zmq::transport_func t_func;
+    t_func.factory = &zmq::tcp_transport::tx_create_transport;
+    t_func.destroy = &zmq::tcp_transport::tx_destroy_transport;
+
+    std::pair<std::string, zmq::transport_func>
+    	p(std::string("tcp"), t_func);
+
     tx_factories.insert(p);
 }
 
@@ -102,6 +109,7 @@ zmq::ctx_t::~ctx_t ()
 
     //  Remove the tag, so that the object is considered dead.
     tag = ZMQ_CTX_TAG_VALUE_BAD;
+
 }
 
 int zmq::ctx_t::terminate ()
@@ -488,8 +496,8 @@ void zmq::ctx_t::connect_pending (const char *addr_, zmq::socket_base_t *bind_so
     endpoints_sync.unlock ();
 }
 
-void zmq::ctx_t::add_transport(const std::string &name, transport_factory tx_f) {
-	tx_factories.insert(std::pair<std::string, zmq::transport_factory>(name, tx_f));
+void zmq::ctx_t::add_transport(const std::string &name, transport_func *tx_f) {
+	tx_factories.insert(std::pair<std::string, zmq::transport_func>(name, *tx_f));
 }
 
 void zmq::ctx_t::connect_inproc_sockets (zmq::socket_base_t *bind_socket_,

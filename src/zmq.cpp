@@ -1084,7 +1084,7 @@ int zmq_has (const char *capability)
     return false;
 }
 
-void zmq_add_transport(void *ctx, char *name, void *(*txpt)()) {
+void zmq_add_transport(void *ctx, char *name, void *txpt) {
 	const std::string t_name(name);
-	((zmq::ctx_t*)ctx)->add_transport(t_name, (zmq::transport_factory)txpt);
+	((zmq::ctx_t*)ctx)->add_transport(t_name, (zmq::transport_func*)txpt);
 }

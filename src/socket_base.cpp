@@ -82,7 +82,7 @@ bool zmq::socket_base_t::check_tag ()
 }
 
 zmq::socket_base_t *zmq::socket_base_t::create (int type_, class ctx_t *parent_,
-    uint32_t tid_, int sid_, std::map<std::string, zmq::transport_factory> *tx_factories_)
+    uint32_t tid_, int sid_, std::map<std::string, zmq::transport_func> *tx_factories_)
 {
     socket_base_t *s = NULL;
     switch (type_) {
@@ -146,7 +146,9 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_) :
     rcvmore (false),
     file_desc(-1),
     monitor_socket (NULL),
-    monitor_events (0)
+    monitor_events (0),
+    tx_transport(NULL)
+
 {
     options.socket_id = sid_;
     options.ipv6 = (parent_->get (ZMQ_IPV6) != 0);
@@ -155,6 +157,10 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_) :
 zmq::socket_base_t::~socket_base_t ()
 {
     stop_monitor ();
+
+    //if(tx_transport)
+    	//delete tx_transport;
+
     zmq_assert (destroyed);
 }
 
@@ -395,15 +401,17 @@ int zmq::socket_base_t::bind (const char *addr_)
     }
 
     if (protocol == "tcp") {
-    	std::map<std::string, zmq::transport_factory>::iterator i =
+    	std::map<std::string, zmq::transport_func>::iterator i =
     			tx_factories->find(std::string("tcp"));
 
-    	assert(tx_factories->end() != i);
+    	if(tx_factories->end() == i)
+    		return -1;
 
-    	zmq::transport *txpt = i->second();
+    	tx_transport = i->second.factory();
 
         tcp_listener_t *listener = new (std::nothrow) tcp_listener_t (
-            io_thread, this, options, txpt);
+            io_thread, this, options, tx_transport);
+
         alloc_assert (listener);
         int rc = listener->set_address (address.c_str ());
         if (rc != 0) {
@@ -638,6 +646,14 @@ int zmq::socket_base_t::connect (const char *addr_)
         }
         //  Defer resolution until a socket is opened
         paddr->resolved.tcp_addr = NULL;
+
+        //Get the factory for the tcp transport
+        std::map<std::string, zmq::transport_func>::iterator it =
+        		tx_factories->find(std::string("tcp"));
+
+        zmq_assert(tx_factories->end() != it);
+
+        tx_transport = it->second.factory();
     }
 #if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS
     else
@@ -680,7 +696,7 @@ int zmq::socket_base_t::connect (const char *addr_)
 
     //  Create session.
     session_base_t *session = session_base_t::create (io_thread, true, this,
-        options, paddr);
+        options, paddr, tx_transport);
     errno_assert (session);
 
     //  PGM does not support subscription forwarding; ask for all data to be
@@ -1353,6 +1369,6 @@ void zmq::socket_base_t::stop_monitor (void)
     }
 }
 
-void zmq::socket_base_t::set_transport_factories(std::map<std::string, zmq::transport_factory> *tx_factories_) {
+void zmq::socket_base_t::set_transport_factories(std::map<std::string, zmq::transport_func> *tx_factories_) {
 	tx_factories = tx_factories_;
 }
