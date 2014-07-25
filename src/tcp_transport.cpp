@@ -11,6 +11,7 @@
 #include "ip.hpp"
 #include "tcp.hpp"
 #include "mutex.hpp"
+#include "fd.hpp"
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -52,63 +53,63 @@ int zmq::tcp_transport::tx_socket (int domain, int type, int protocol)
 	return rc;
 }
 
-int zmq::tcp_transport::tx_connect (int sockfd, const struct sockaddr *addr,
+int zmq::tcp_transport::tx_connect (zmq::fd_t fd, const struct sockaddr *addr,
 		socklen_t addrlen)
 {
 	int rc;
-	rc = connect(sockfd, addr, addrlen);
+	rc = connect(fd, addr, addrlen);
 
 	//P_Z_ERR(rc, "tx_connect");
 
 	return rc;
 }
 
-int zmq::tcp_transport::tx_listen (int sockfd, int backlog)
+int zmq::tcp_transport::tx_listen (zmq::fd_t fd, int backlog)
 {
 	int rc;
-	rc = listen(sockfd, backlog);
+	rc = listen(fd, backlog);
 
 	//P_Z_ERR(rc, "tx_listen");
 
 	return rc;
 }
 
-int zmq::tcp_transport::tx_bind (int sockfd, const struct sockaddr *addr,
+int zmq::tcp_transport::tx_bind (zmq::fd_t fd, const struct sockaddr *addr,
 		socklen_t addrlen)
 {
 	int rc;
-	rc = bind(sockfd, addr, addrlen);
+	rc = bind(fd, addr, addrlen);
 
 	//P_Z_ERR(rc, "tx_bind");
 
 	return rc;
 }
 
-int zmq::tcp_transport::tx_accept (int sockfd, struct sockaddr *addr,
+int zmq::tcp_transport::tx_accept (zmq::fd_t fd, struct sockaddr *addr,
 		socklen_t *addrlen)
 {
 	int rc;
-	rc = accept(sockfd, addr, addrlen);
+	rc = accept(fd, addr, addrlen);
 
 	//P_N_ERR(rc, "tx_accept");
 
 	return rc;
 }
 
-int zmq::tcp_transport::tx_send (int sockfd, const void *buf, size_t len, int flags)
+int zmq::tcp_transport::tx_send (zmq::fd_t fd, const void *buf, size_t len, int flags)
 {
 	int rc;
-	rc = send(sockfd, buf, len, flags);
+	rc = send(fd, buf, len, flags);
 
 	//P_N_ERR(rc, "tx_send");
 
 	return rc;
 }
 
-int zmq::tcp_transport::tx_recv (int sockfd, void *buf, size_t len, int flags)
+int zmq::tcp_transport::tx_recv (zmq::fd_t fd, void *buf, size_t len, int flags)
 {
 	int rc;
-	rc = recv(sockfd, buf, len, flags);
+	rc = recv(fd, buf, len, flags);
 
 	//P_N_ERR(rc, "tx_recv");
 
@@ -125,58 +126,58 @@ int zmq::tcp_transport::tx_close (int fd)
 	return rc;
 }
 
-int zmq::tcp_transport::tx_getsockopt (int sockfd, int level, int optname,
+int zmq::tcp_transport::tx_getsockopt (zmq::fd_t fd, int level, int optname,
 		void *optval, socklen_t *optlen)
 {
-	return getsockopt(sockfd, level, optname, optval, optlen);
+	return getsockopt(fd, level, optname, optval, optlen);
 }
 
-int zmq::tcp_transport::tx_setsockopt (int sockfd, int level, int optname,
+int zmq::tcp_transport::tx_setsockopt (zmq::fd_t fd, int level, int optname,
 		const void *optval, socklen_t optlen)
 {
-	return setsockopt(sockfd, level, optname, optval, optlen);
+	return setsockopt(fd, level, optname, optval, optlen);
 }
 
-void zmq::tcp_transport::tx_set_receive_buffer (int sockfd, int bufsize)
+void zmq::tcp_transport::tx_set_receive_buffer (zmq::fd_t fd, int bufsize)
 {
-	set_tcp_receive_buffer(sockfd, bufsize);
+	set_tcp_receive_buffer(fd, bufsize);
 }
 
-void zmq::tcp_transport::tx_set_send_buffer (int sockfd, int bufsize)
+void zmq::tcp_transport::tx_set_send_buffer (zmq::fd_t fd, int bufsize)
 {
-	set_tcp_send_buffer(sockfd, bufsize);
+	set_tcp_send_buffer(fd, bufsize);
 }
 
-void zmq::tcp_transport::tx_set_keepalives (int sockfd, int keepalive, int keepalive_cnt,
+void zmq::tcp_transport::tx_set_keepalives (zmq::fd_t fd, int keepalive, int keepalive_cnt,
 		int keepalive_idle, int keepalive_intvl)
 {
-	tune_tcp_keepalives(sockfd, keepalive, keepalive_cnt, keepalive_idle,
+	tune_tcp_keepalives(fd, keepalive, keepalive_cnt, keepalive_idle,
 			keepalive_intvl);
 }
 
-void zmq::tcp_transport::tx_tune_socket (int sockfd)
+void zmq::tcp_transport::tx_tune_socket (zmq::fd_t fd)
 {
-	tune_tcp_socket(sockfd);
+	tune_tcp_socket(fd);
 }
 
-void zmq::tcp_transport::tx_unblock_socket (int sockfd)
+void zmq::tcp_transport::tx_unblock_socket (zmq::fd_t fd)
 {
-	unblock_socket(sockfd);
+	unblock_socket(fd);
 }
 
-void zmq::tcp_transport::tx_enable_ipv4_mapping (int sockfd)
+void zmq::tcp_transport::tx_enable_ipv4_mapping (zmq::fd_t fd)
 {
-	enable_ipv4_mapping(sockfd);
+	enable_ipv4_mapping(fd);
 }
 
-void zmq::tcp_transport::tx_get_peer_ip_address (int sockfd, std::string &ip_addr)
+void zmq::tcp_transport::tx_get_peer_ip_address (zmq::fd_t fd, std::string &ip_addr)
 {
-	get_peer_ip_address(sockfd, ip_addr);
+	get_peer_ip_address(fd, ip_addr);
 }
 
-void zmq::tcp_transport::tx_set_ip_type_of_service (int sockfd, int iptos)
+void zmq::tcp_transport::tx_set_ip_type_of_service (zmq::fd_t fd, int iptos)
 {
-	set_ip_type_of_service (sockfd, iptos);
+	set_ip_type_of_service (fd, iptos);
 }
 
 zmq::transport_options_t *zmq::tcp_transport::tx_get_options ()

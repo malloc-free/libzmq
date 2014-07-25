@@ -9,6 +9,7 @@
 #define TCP_TRANSPORT_HPP_
 
 #include "transport.hpp"
+#include "fd.hpp"
 
 #include <string>
 #include <sys/socket.h>
@@ -44,48 +45,48 @@ public:
 
 	int tx_socket (int domain, int type, int protocol);
 
-	int tx_connect (int sockfd, const struct sockaddr *addr,
+	int tx_connect (fd_t fd, const struct sockaddr *addr,
 			socklen_t addrlen);
 
-	int tx_listen (int sockfd, int backlog);
+	int tx_listen (fd_t fd, int backlog);
 
-	int tx_bind (int sockfd, const struct sockaddr *addr,
+	int tx_bind (fd_t fd, const struct sockaddr *addr,
 			socklen_t addrlen);
 
-	int tx_accept (int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+	int tx_accept (fd_t fd, struct sockaddr *addr, socklen_t *addrlen);
 
-	int tx_send (int sockfd, const void *buf, size_t len, int flags);
+	int tx_send (fd_t fd, const void *buf, size_t len, int flags);
 
-	int tx_recv (int sockfd, void *buf, size_t len, int flags);
+	int tx_recv (fd_t fd, void *buf, size_t len, int flags);
 
-	int tx_close (int fd);
+	int tx_close (fd_t fd);
 
-	int tx_getsockopt (int sockfd, int level, int optname,
+	int tx_getsockopt (fd_t fd, int level, int optname,
 			void *optval, socklen_t *optlen);
 
-	int tx_setsockopt (int sockfd, int level, int optname,
+	int tx_setsockopt (fd_t fd, int level, int optname,
 			const void *optval, socklen_t optlen);
 
-	void tx_set_receive_buffer (int sockfd, int bufsize);
+	void tx_set_receive_buffer (fd_t fd, int bufsize);
 
-	void tx_set_send_buffer (int sockfd, int bufsize);
+	void tx_set_send_buffer (fd_t fd, int bufsize);
 
-	void tx_set_keepalives (int sockfd, int keepalive, int keepalive_cnt,
+	void tx_set_keepalives (fd_t fd, int keepalive, int keepalive_cnt,
 			int keepalive_idle, int keepalive_intv);
 
-	void tx_tune_socket (int sockfd);
+	void tx_tune_socket (fd_t fd);
 
-	void tx_unblock_socket (int sockfd);
+	void tx_unblock_socket (fd_t fd);
 
-	void tx_enable_ipv4_mapping (int sockfd);
+	void tx_enable_ipv4_mapping (fd_t fd);
 
-	void tx_get_peer_ip_address (int sockfd, std::string &ip_addr);
+	void tx_get_peer_ip_address (fd_t fd, std::string &ip_addr);
 
-	void tx_set_ip_type_of_service (int sockfd, int iptos);
+	void tx_set_ip_type_of_service (fd_t fd, int iptos);
 
 	transport_options_t *tx_get_options ();
 
-	void tx_set_options (int sockd, transport_options_t *option);
+	void tx_set_options (fd_t fd, transport_options_t *option);
 };
 
 } /* namespace zmq */
