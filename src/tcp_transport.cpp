@@ -2,7 +2,7 @@
  * tcpWrapper.cpp
  *
  *  Created on: 19/03/2014
- *      Author: michael
+ *      Author: Michael Holmwood
  */
 
 #include "tcp_transport.hpp"
@@ -24,12 +24,9 @@
 namespace zmq {
 
 tcp_transport::tcp_transport() {
-	// TODO Auto-generated constructor stub
-
 }
 
 tcp_transport::~tcp_transport() {
-	// TODO Auto-generated destructor stub
 }
 
 transport *tcp_transport::tx_create_transport() {

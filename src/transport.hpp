@@ -72,6 +72,10 @@ public:
 
 	virtual void tx_set_send_buffer(int sockfd, int bufsize) = 0;
 
+	// This just copies most of the function calls required to set up
+	// tcp in zmq. There may be a better way to achieve this, but it
+	// currently suffices and has the least impact on existing code.
+
 	virtual void tx_set_keepalives(int sockfd, int keepalive,
 			int keepalive_cnt, int keepalive_idle, int keepalive_intv) = 0;
 
@@ -85,17 +89,35 @@ public:
 
 	virtual void tx_set_ip_type_of_service(int sockfd, int iptos) = 0;
 
+	// Option factory method - used to set options for the protocol
 	virtual transport_options_t *tx_get_options() = 0;
 
+	// Called when options are set for the protocol.
 	virtual void tx_set_options(int sockd, transport_options_t *options) = 0;
 };
 
+// Function definition for transport object factory.
 typedef transport *(*transport_factory)();
+
+// Function definition for transport object destruction.
 typedef void (*transport_destroy)(transport *tx_transport_);
 
+// TODO: The functions below will have to be created for protocol
+// libraries that cannot use the zmq provided polling functions.
+// This is generally the case for application layer protocols.
+
+// Function definition for poller factory.
+// typedef void (*tpt_poller_factory)();
+
+// Function definition for poller destruction.
+// typedef void (*tpt_poller_destroy)(poller *tpt_poller);
+
+// A struct used to pass pointers to functions serving the above functions.
 struct transport_func {
 	transport_factory factory;
 	transport_destroy destroy;
+	//tpt_poller_factory tx_create_poller;
+	//tpt_poller_destroy tx_destroy_poller;
 };
 
 } /* namespace zmq */

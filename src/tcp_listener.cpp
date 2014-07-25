@@ -311,7 +311,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
             int rc = closesocket (sock);
             wsa_assert (rc != SOCKET_ERROR);
 #else
-            int rc = ::close (sock);
+            int rc = tx_transport->tx_close (sock);
             errno_assert (rc == 0);
 #endif
             return retired_fd;
@@ -320,7 +320,7 @@ zmq::fd_t zmq::tcp_listener_t::accept ()
 
     // Set the IP Type-Of-Service priority for this client socket
     if (options.tos != 0)
-        set_ip_type_of_service (sock, options.tos);
+        tx_transport->tx_set_ip_type_of_service (sock, options.tos);
 
     return sock;
 }

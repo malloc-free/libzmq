@@ -23,9 +23,18 @@ public:
 
 	virtual ~tcp_transport();
 
+	// Create transport objects.
 	static transport *tx_create_transport();
 
+	// Destroy tcp_transport objects.
 	static void tx_destroy_transport(transport *tx_transport_);
+
+	// Sockets functions. Basically just call the BSD Sockets API.
+	// Other protocols implementing the transport interface will have
+	// to do more (an example being SCTP).
+
+	//This function will have to be implemented in some protocols.
+	//poller *tx_create_poller();
 
 	int tx_socket(int domain, int type, int protocol);
 
