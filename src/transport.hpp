@@ -32,9 +32,9 @@ class transport_options_t
 public:
 	virtual ~transport_options_t (){};
 
-	virtual int setsockopt(const void *optval_, size_t optvallen_) = 0;
+	virtual int setsockopt (const void *optval_, size_t optvallen_) = 0;
 
-	virtual int getsockopt(void *optval_, size_t *optvallen_) = 0;
+	virtual int getsockopt (void *optval_, size_t *optvallen_) = 0;
 };
 
 /**
@@ -43,70 +43,70 @@ public:
 class transport
 {
 public:
-	transport() : use_count(1) {};
+	transport () : use_count(1) {};
 
-	virtual ~transport() {};
+	virtual ~transport () {};
 
-	virtual transport *tx_copy();
+	virtual transport *tx_copy ();
 
-	virtual bool tx_destroy();
+	virtual bool tx_destroy ();
 
-	virtual int tx_socket(int domain, int type, int protocol) = 0;
+	virtual int tx_socket (int domain, int type, int protocol) = 0;
 
-	virtual int tx_connect(int sockfd, const struct sockaddr *addr,
+	virtual int tx_connect (int sockfd, const struct sockaddr *addr,
 			socklen_t addrlen) = 0;
 
-	virtual int tx_listen(int sockfd, int backlog) = 0;
+	virtual int tx_listen (int sockfd, int backlog) = 0;
 
-	virtual int tx_bind(int sockfd, const struct sockaddr *addr,
+	virtual int tx_bind (int sockfd, const struct sockaddr *addr,
 			socklen_t addrlen) = 0;
 
-	virtual int tx_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) = 0;
+	virtual int tx_accept (int sockfd, struct sockaddr *addr, socklen_t *addrlen) = 0;
 
-	virtual int tx_send(int sockfd, const void *buf, size_t len, int flags) = 0;
+	virtual int tx_send (int sockfd, const void *buf, size_t len, int flags) = 0;
 
-	virtual int tx_recv(int sockfd, void *buf, size_t len, int flags) = 0;
+	virtual int tx_recv (int sockfd, void *buf, size_t len, int flags) = 0;
 
-	virtual int tx_close(int fd) = 0;
+	virtual int tx_close (int fd) = 0;
 
-	virtual int tx_getsockopt(int sockfd, int level, int optname,
+	virtual int tx_getsockopt (int sockfd, int level, int optname,
 			void *optval, socklen_t *optlen) = 0;
 
-	virtual int tx_setsockopt(int sockfd, int level, int optname,
+	virtual int tx_setsockopt (int sockfd, int level, int optname,
 			const void *optval, socklen_t optlen) = 0;
 
-	virtual void tx_set_receive_buffer(int sockfd, int bufsize) = 0;
+	virtual void tx_set_receive_buffer (int sockfd, int bufsize) = 0;
 
-	virtual void tx_set_send_buffer(int sockfd, int bufsize) = 0;
+	virtual void tx_set_send_buffer (int sockfd, int bufsize) = 0;
 
 	// This just copies most of the function calls required to set up
 	// tcp in zmq. There may be a better way to achieve this, but it
 	// currently suffices and has the least impact on existing code.
 
-	virtual void tx_set_keepalives(int sockfd, int keepalive,
+	virtual void tx_set_keepalives (int sockfd, int keepalive,
 			int keepalive_cnt, int keepalive_idle, int keepalive_intv) = 0;
 
-	virtual void tx_tune_socket(int sockfd) = 0;
+	virtual void tx_tune_socket (int sockfd) = 0;
 
-	virtual void tx_unblock_socket(int sockfd) = 0;
+	virtual void tx_unblock_socket (int sockfd) = 0;
 
-	virtual void tx_enable_ipv4_mapping(int sockfd) = 0;
+	virtual void tx_enable_ipv4_mapping (int sockfd) = 0;
 
-	virtual void tx_get_peer_ip_address(int sockfd, std::string &ip_addr_) = 0;
+	virtual void tx_get_peer_ip_address (int sockfd, std::string &ip_addr_) = 0;
 
-	virtual void tx_set_ip_type_of_service(int sockfd, int iptos) = 0;
+	virtual void tx_set_ip_type_of_service (int sockfd, int iptos) = 0;
 
 	// Option factory method - used to set options for the protocol
-	virtual transport_options_t *tx_get_options() = 0;
+	virtual transport_options_t *tx_get_options () = 0;
 
 	// Called when options are set for the protocol.
-	virtual void tx_set_options(int sockd, transport_options_t *options) = 0;
+	virtual void tx_set_options (int sockd, transport_options_t *options) = 0;
 
 protected:
 
-	virtual void tx_increment_use();
+	virtual void tx_increment_use ();
 
-	virtual bool tx_decrement_use();
+	virtual bool tx_decrement_use ();
 
 private:
 
@@ -116,7 +116,7 @@ private:
 };
 
 // Function definition for transport object factory.
-typedef transport *(*transport_factory)();
+typedef transport *(*transport_factory) ();
 
 // TODO: The functions below will have to be created for protocol
 // libraries that cannot use the zmq provided polling functions.
