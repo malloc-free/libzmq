@@ -72,7 +72,6 @@ zmq::ctx_t::ctx_t () :
     // Create tcp functions
     zmq::transport_func t_func;
     t_func.factory = &zmq::tcp_transport::tx_create_transport;
-    t_func.destroy = &zmq::tcp_transport::tx_destroy_transport;
 
     std::pair<std::string, zmq::transport_func>
     	p(std::string("tcp"), t_func);

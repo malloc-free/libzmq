@@ -36,19 +36,6 @@ transport *tcp_transport::tx_create_transport() {
 	return new (std::nothrow) tcp_transport();
 }
 
-void tcp_transport::tx_destroy_transport(transport *tx_transport_) {
-	delete tx_transport_;
-}
-
-transport *tcp_transport::tx_copy() {
-	tx_increment_use();
-	return this;
-}
-
-bool tcp_transport::tx_destroy() {
-	return tx_decrement_use();
-}
-
 int tcp_transport::tx_socket(int domain, int type, int protocol)
 {
 	int rc;

@@ -47,9 +47,9 @@ public:
 
 	virtual ~transport() {};
 
-	virtual transport *tx_copy() = 0;
+	virtual transport *tx_copy();
 
-	virtual bool tx_destroy() = 0;
+	virtual bool tx_destroy();
 
 	virtual int tx_socket(int domain, int type, int protocol) = 0;
 
@@ -118,12 +118,6 @@ private:
 // Function definition for transport object factory.
 typedef transport *(*transport_factory)();
 
-// Function definition for transport object destruction.
-typedef void (*transport_destroy)(transport *tx_transport_);
-
-// Function definition for transport object copy.
-typedef transport *(*transport_copy)();
-
 // TODO: The functions below will have to be created for protocol
 // libraries that cannot use the zmq provided polling functions.
 // This is generally the case for application layer protocols.
@@ -131,16 +125,9 @@ typedef transport *(*transport_copy)();
 // Function definition for poller factory.
 // typedef void (*tpt_poller_factory)();
 
-// Function definition for poller destruction.
-// typedef void (*tpt_poller_destroy)(poller *tpt_poller);
-
 // A struct used to pass pointers to functions serving the above functions.
 struct transport_func {
 	transport_factory factory;
-	transport_destroy destroy;
-	transport_copy copy;
-	//tpt_poller_factory tx_create_poller;
-	//tpt_poller_destroy tx_destroy_poller;
 };
 
 } /* namespace zmq */

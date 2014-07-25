@@ -26,15 +26,6 @@ public:
 	// Create transport objects.
 	static transport *tx_create_transport();
 
-	// Destroy tcp_transport objects.
-	static void tx_destroy_transport(transport *tx_transport_);
-
-	// Provide a copy of the transport object.
-	transport *tx_copy();
-
-	// Destroy the transport object.
-	bool tx_destroy();
-
 	// Sockets functions. Basically just call the BSD Sockets API.
 	// Other protocols implementing the transport interface will have
 	// to do more (an example being SCTP).
