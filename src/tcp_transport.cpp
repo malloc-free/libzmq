@@ -10,6 +10,7 @@
 #include "err.hpp"
 #include "ip.hpp"
 #include "tcp.hpp"
+#include "mutex.hpp"
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -20,10 +21,12 @@
 #include <iostream>
 #include <string>
 #include <errno.h>
+#include <memory>
 
 namespace zmq {
 
-tcp_transport::tcp_transport() {
+tcp_transport::tcp_transport()
+{
 }
 
 tcp_transport::~tcp_transport() {
@@ -35,6 +38,15 @@ transport *tcp_transport::tx_create_transport() {
 
 void tcp_transport::tx_destroy_transport(transport *tx_transport_) {
 	delete tx_transport_;
+}
+
+transport *tcp_transport::tx_copy() {
+	tx_increment_use();
+	return this;
+}
+
+bool tcp_transport::tx_destroy() {
+	return tx_decrement_use();
 }
 
 int tcp_transport::tx_socket(int domain, int type, int protocol)

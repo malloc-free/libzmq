@@ -64,6 +64,12 @@ zmq::tcp_listener_t::tcp_listener_t (io_thread_t *io_thread_,
 zmq::tcp_listener_t::~tcp_listener_t ()
 {
     zmq_assert (s == retired_fd);
+
+    if(tx_transport && tx_transport->tx_destroy())
+    	delete tx_transport;
+
+
+
 }
 
 void zmq::tcp_listener_t::process_plug ()
@@ -99,7 +105,7 @@ void zmq::tcp_listener_t::in_event ()
 
     //  Create the engine object for this connection.
     stream_engine_t *engine = new (std::nothrow)
-        stream_engine_t (fd, options, endpoint, tx_transport);
+        stream_engine_t (fd, options, endpoint, tx_transport->tx_copy());
     alloc_assert (engine);
 
     //  Choose I/O thread to run connecter in. Given that we are already
@@ -109,7 +115,7 @@ void zmq::tcp_listener_t::in_event ()
 
     //  Create and launch a session object.
     session_base_t *session = session_base_t::create (io_thread, false, socket,
-        options, NULL, tx_transport);
+        options, NULL, tx_transport->tx_copy());
     errno_assert (session);
     session->inc_seqnum ();
     launch_child (session);

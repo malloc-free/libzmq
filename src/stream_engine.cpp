@@ -169,6 +169,9 @@ zmq::stream_engine_t::~stream_engine_t ()
     delete encoder;
     delete decoder;
     delete mechanism;
+
+    if(tx_transport && tx_transport->tx_destroy())
+    	delete tx_transport;
 }
 
 void zmq::stream_engine_t::plug (io_thread_t *io_thread_,

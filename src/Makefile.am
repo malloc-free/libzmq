@@ -164,6 +164,7 @@ libzmq_la_SOURCES = \
     tcp_listener.cpp \
     tcp_transport.cpp \
     thread.cpp \
+    transport.cpp \
     trie.cpp \
     xpub.cpp \
     router.cpp \

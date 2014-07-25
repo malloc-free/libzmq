@@ -12,6 +12,8 @@
 #ifndef TRANSPORT_HPP_
 #define TRANSPORT_HPP_
 
+#include "mutex.hpp"
+
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -41,8 +43,13 @@ public:
 class transport
 {
 public:
+	transport() : use_count(1) {};
 
 	virtual ~transport() {};
+
+	virtual transport *tx_copy() = 0;
+
+	virtual bool tx_destroy() = 0;
 
 	virtual int tx_socket(int domain, int type, int protocol) = 0;
 
@@ -94,6 +101,18 @@ public:
 
 	// Called when options are set for the protocol.
 	virtual void tx_set_options(int sockd, transport_options_t *options) = 0;
+
+protected:
+
+	virtual void tx_increment_use();
+
+	virtual bool tx_decrement_use();
+
+private:
+
+	int use_count;
+
+	mutex_t lock;
 };
 
 // Function definition for transport object factory.
@@ -101,6 +120,9 @@ typedef transport *(*transport_factory)();
 
 // Function definition for transport object destruction.
 typedef void (*transport_destroy)(transport *tx_transport_);
+
+// Function definition for transport object copy.
+typedef transport *(*transport_copy)();
 
 // TODO: The functions below will have to be created for protocol
 // libraries that cannot use the zmq provided polling functions.
@@ -116,6 +138,7 @@ typedef void (*transport_destroy)(transport *tx_transport_);
 struct transport_func {
 	transport_factory factory;
 	transport_destroy destroy;
+	transport_copy copy;
 	//tpt_poller_factory tx_create_poller;
 	//tpt_poller_destroy tx_destroy_poller;
 };

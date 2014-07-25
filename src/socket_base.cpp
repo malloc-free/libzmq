@@ -147,7 +147,8 @@ zmq::socket_base_t::socket_base_t (ctx_t *parent_, uint32_t tid_, int sid_) :
     file_desc(-1),
     monitor_socket (NULL),
     monitor_events (0),
-    tx_transport(NULL)
+    tx_transport(NULL),
+	tx_factories(NULL)
 
 {
     options.socket_id = sid_;
@@ -158,8 +159,8 @@ zmq::socket_base_t::~socket_base_t ()
 {
     stop_monitor ();
 
-    //if(tx_transport)
-    	//delete tx_transport;
+    if(tx_transport && tx_transport->tx_destroy())
+    	delete tx_transport;
 
     zmq_assert (destroyed);
 }
@@ -410,7 +411,7 @@ int zmq::socket_base_t::bind (const char *addr_)
     	tx_transport = i->second.factory();
 
         tcp_listener_t *listener = new (std::nothrow) tcp_listener_t (
-            io_thread, this, options, tx_transport);
+            io_thread, this, options, tx_transport->tx_copy());
 
         alloc_assert (listener);
         int rc = listener->set_address (address.c_str ());
@@ -487,6 +488,8 @@ int zmq::socket_base_t::connect (const char *addr_)
     std::string address;
     if (parse_uri (addr_, protocol, address) || check_protocol (protocol))
         return -1;
+
+    transport *tpt = NULL;
 
     if (protocol == "inproc") {
 
@@ -654,6 +657,8 @@ int zmq::socket_base_t::connect (const char *addr_)
         zmq_assert(tx_factories->end() != it);
 
         tx_transport = it->second.factory();
+
+        tpt = tx_transport->tx_copy();
     }
 #if !defined ZMQ_HAVE_WINDOWS && !defined ZMQ_HAVE_OPENVMS
     else
@@ -696,7 +701,8 @@ int zmq::socket_base_t::connect (const char *addr_)
 
     //  Create session.
     session_base_t *session = session_base_t::create (io_thread, true, this,
-        options, paddr, tx_transport);
+        options, paddr, tpt);
+
     errno_assert (session);
 
     //  PGM does not support subscription forwarding; ask for all data to be

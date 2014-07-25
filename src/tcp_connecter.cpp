@@ -74,6 +74,9 @@ zmq::tcp_connecter_t::~tcp_connecter_t ()
     zmq_assert (!timer_started);
     zmq_assert (!handle_valid);
     zmq_assert (s == retired_fd);
+
+    if(tx_transport && tx_transport->tx_destroy())
+    	delete tx_transport;
 }
 
 void zmq::tcp_connecter_t::process_plug ()
@@ -130,8 +133,11 @@ void zmq::tcp_connecter_t::out_event ()
     socket->set_fd (fd);
 
     //  Create the engine object for this connection.
+    tx_transport->tx_copy();
+
     stream_engine_t *engine = new (std::nothrow)
-        stream_engine_t (fd, options, endpoint, tx_transport);
+        stream_engine_t (fd, options, endpoint, tx_transport->tx_copy());
+
     alloc_assert (engine);
 
     //  Attach the engine to the corresponding session object.
