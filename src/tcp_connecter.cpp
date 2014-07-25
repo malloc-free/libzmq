@@ -126,14 +126,13 @@ void zmq::tcp_connecter_t::out_event ()
         return;
     }
 
-    tune_tcp_socket (fd);
-    tune_tcp_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
+    tx_transport->tx_tune_socket (fd);
+    tx_transport->tx_set_keepalives (fd, options.tcp_keepalive, options.tcp_keepalive_cnt, options.tcp_keepalive_idle, options.tcp_keepalive_intvl);
 
     // remember our fd for ZMQ_SRCFD in messages
     socket->set_fd (fd);
 
     //  Create the engine object for this connection.
-    tx_transport->tx_copy();
 
     stream_engine_t *engine = new (std::nothrow)
         stream_engine_t (fd, options, endpoint, tx_transport->tx_copy());
